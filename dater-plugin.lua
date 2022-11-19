@@ -1,5 +1,3 @@
-local ffi = require("ffi")
--- local SSL = require("tls")
 local socket = require("ljsocket")
 local streamUrl = "rtsp://rtsp.stream/movie";
 
@@ -51,6 +49,24 @@ function settings_modified(props, prop, settings)
   print('Settings changed..');
   print("New VLC source name: "..vlc_source_name);
   return true
+end
+
+function script_defaults(settings)
+	obs.obs_data_set_default_string(settings, "vlc_source", "-----")
+	obs.obs_data_set_default_int(settings, "start_in_secs", 0)	
+end
+
+
+function script_load(settings)
+	local sh = obs.obs_get_signal_handler()
+	obs.signal_handler_connect(sh, "source_show", source_activated)
+	obs.signal_handler_connect(sh, "source_hide", source_deactivated)
+
+	obs.obs_frontend_add_event_callback(on_event)
+
+	settings_ = settings
+
+	script_update(settings)
 end
 
 
