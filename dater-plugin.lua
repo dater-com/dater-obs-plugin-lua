@@ -1,8 +1,9 @@
+---@diagnostic disable: lowercase-global
 local socket = require("ljsocket")
 local streamUrl = "rtsp://rtsp.stream/movie";
+obs = obslua
 
 print("Starting Dater Obs Plugin..!")
-obs = obslua
 
 function script_description()
   print("Dater Streams")
@@ -28,7 +29,7 @@ function script_properties()
 	obs.obs_property_set_modified_callback(vlc_player, settings_modified)
 
   obs.source_list_release(sources)
-	
+
 	obs.obs_properties_add_text(props, "user_id", "Dater userId", obs.OBS_TEXT_DEFAULT)
  	obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
 	obs.obs_properties_add_int(props, "start_in_secs", "Start time (secs)", 0, 10000, 1)
@@ -53,7 +54,7 @@ end
 
 function script_defaults(settings)
 	obs.obs_data_set_default_string(settings, "vlc_source", "-----")
-	obs.obs_data_set_default_int(settings, "start_in_secs", 0)	
+	obs.obs_data_set_default_int(settings, "start_in_secs", 0)
 end
 
 
@@ -69,6 +70,11 @@ function script_load(settings)
 	script_update(settings)
 end
 
+function script_update(settings)
+  source_name = obs.obs_data_get_string(settings, "vlc_source")
+  video_id = obs.obs_data_get_string(settings, "user_id")
+  local p_start_in_secs = obs.obs_data_get_int(settings, "start_in_secs")
+end
 
 local host = "us-central1-dater3-dev.cloudfunctions.net"
 local functionName = "api-locationByIp";
@@ -121,4 +127,3 @@ while true do
         socket:poll_connect()
     end
 end
-

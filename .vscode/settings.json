@@ -1,0 +1,7 @@
+{
+  "Lua.diagnostics.globals": [
+    "obslua",
+    "source_activated",
+    "source_deactivated"
+  ]
+}
