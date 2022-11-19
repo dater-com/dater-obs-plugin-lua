@@ -3,19 +3,54 @@ local ffi = require("ffi")
 local socket = require("ljsocket")
 local streamUrl = "rtsp://rtsp.stream/movie";
 
-bit = require("bit")
-
-ffi.cdef[[
-int printf(const char *fmt, ...);
-]]
-ffi.C.printf("Hello %s!", "world")
-
-print("Hello World!")
+print("Starting Dater Obs Plugin..!")
 obs = obslua
 
 function script_description()
   print("Dater Streams")
   return [[Get your current match stream and play it in VLC Source automatically]]
+end
+
+
+function script_properties()
+	local props = obs.obs_properties_create()
+
+	local vlc_player = obs.obs_properties_add_list(props, "vlc_source", "VLC Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local sources = obs.obs_enum_sources()
+
+  if sources ~= nil then
+		for _, source in ipairs(sources) do
+			source_id = obs.obs_source_get_unversioned_id(source)
+			if source_id == "vlc_source" then
+				local name = obs.obs_source_get_name(source)
+				obs.obs_property_list_add_string(vlc_player, name, name)
+			end
+		end
+	end
+	obs.obs_property_set_modified_callback(vlc_player, settings_modified)
+
+  obs.source_list_release(sources)
+	
+	obs.obs_properties_add_text(props, "user_id", "Dater userId", obs.OBS_TEXT_DEFAULT)
+ 	obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
+	obs.obs_properties_add_int(props, "start_in_secs", "Start time (secs)", 0, 10000, 1)
+
+	settings_modified(props, nil, settings_)
+
+	return props
+end
+
+function settings_modified(props, prop, settings)
+	local p_vlc_source = obs.obs_properties_get(props, "vlc_source")
+	local p_user_id = obs.obs_properties_get(props, "user_id")
+	local p_autostart = obs.obs_properties_get(props, "autostart")	
+	local p_start_in_secs = obs.obs_properties_get(props, "start_in_secs")	
+	local vlc_source_name = obs.obs_data_get_string(settings, "vlc_source")
+
+  -- print("VLC Source changed: "..p_vlc_source.."\n");
+  print('Settings changed..');
+  print("New VLC source name: "..vlc_source_name);
+  return true
 end
 
 
@@ -70,3 +105,4 @@ while true do
         socket:poll_connect()
     end
 end
+
