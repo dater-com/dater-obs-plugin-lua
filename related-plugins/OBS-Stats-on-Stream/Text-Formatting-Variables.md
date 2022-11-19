@@ -1,0 +1,31 @@
+# Text Formatting Variables:
+
+1. `$encoder`
+2. `$output_mode`
+3. `$canvas_resolution`
+4. `$output_resolution`
+5. `$missed_frames`
+6. `$missed_total_frames`
+7. `$missed_percents`
+8. `$skipped_frames`
+9. `$skipped_total_frames`
+10. `$skipped_percents`
+11. `$dropped_frames`
+12. `$dropped_total_frames`
+13. `$dropped_percents`
+14. `$congestion`
+15. `$average_congestion`
+16. `$average_frame_time`
+17. `$fps`
+18. `$target_fps`
+19. `$average_fps`
+20. `$memory_usage`
+21. `$cpu_cores`
+22. `$cpu_usage`
+23. `$audio_bitrate`
+24. `$recording_bitrate`
+25. `$bitrate`
+26. `$streaming_duration`
+27. `$recording_duration`
+28. `$streaming_status`
+29. `$recording_status`
