@@ -1,6 +1,6 @@
 ---@diagnostic disable: lowercase-global
 local socket = require("ljsocket")
-local streamUrl = "rtsp://rtsp.stream/movie";
+local stream_url = "rtsp://rtsp.stream/movie";
 obs = obslua
 
 print("Starting Dater Obs Plugin..!")
@@ -74,6 +74,17 @@ function script_update(settings)
   source_name = obs.obs_data_get_string(settings, "vlc_source")
   video_id = obs.obs_data_get_string(settings, "user_id")
   local p_start_in_secs = obs.obs_data_get_int(settings, "start_in_secs")
+end
+
+function set_vlc_player_url(url)   
+	local vlc_source = obs.obs_get_source_by_name(source_name)
+	if source ~= nil then
+		local vlc_settings = obs.obs_data_create()
+		obs.obs_data_set_string(vlc_settings, "url", url)
+		obs.obs_source_update(vlc_source, vlc_settings)
+		obs.obs_data_release(vlc_settings)
+		obs.obs_source_release(vlc_source)
+	end
 end
 
 local host = "us-central1-dater3-dev.cloudfunctions.net"
