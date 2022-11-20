@@ -34,7 +34,8 @@ function script_properties()
   obs.source_list_release(sources)
 
 	obs.obs_properties_add_text(props, "user_id", "Dater userId", obs.OBS_TEXT_DEFAULT)
- 	obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
+  obs.obs_properties_add_text(props, "obs_password", "Dater OBS Password", obs.OBS_TEXT_DEFAULT)
+  obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
 	obs.obs_properties_add_int(props, "start_in_secs", "Start time (secs)", 0, 10000, 1)
 
 	settings_modified(props, nil, settings_)
@@ -42,10 +43,15 @@ function script_properties()
 	return props
 end
 
+local function isNotEmpty(textString)
+  return textString ~= nil and textString ~= ''
+end
+
 function settings_modified(props, prop, settings)
 	local p_vlc_source = obs.obs_properties_get(props, "vlc_source")
-	local p_user_id = obs.obs_properties_get(props, "user_id")
-	local p_autostart = obs.obs_properties_get(props, "autostart")	
+  local p_user_id = obs.obs_data_get_string(settings, "user_id")
+  local p_obs_password = obs.obs_data_get_string(settings, "obs_password")
+  local p_autostart = obs.obs_properties_get(props, "autostart")
 	local p_start_in_secs = obs.obs_properties_get(props, "start_in_secs")	
 	local vlc_source_name = obs.obs_data_get_string(settings, "vlc_source")
 
@@ -56,8 +62,15 @@ function settings_modified(props, prop, settings)
 
   print('Settings changed..');
   print("New VLC source name: " .. vlc_source_name);
-  print("VLC Source Properties: ");
-    local vlc_source_properties = obs.obs_source_properties(active_vlc_source)
+
+  if isNotEmpty(p_user_id) then
+    print('User Id: '..p_user_id);
+  end
+
+  if isNotEmpty(p_obs_password) then
+    print('Dater OBS Password: '..p_obs_password);
+  end
+
   set_vlc_player_settings()
   return true
 end
@@ -162,3 +175,4 @@ while true do
         socket:poll_connect()
     end
 end
+
