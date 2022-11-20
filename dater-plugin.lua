@@ -1,6 +1,8 @@
 ---@diagnostic disable: lowercase-global
 local socket = require("ljsocket")
-local stream_url = "rtsp://rtsp.stream/movie";
+local stream_url = "rtsp://rtsp.stream/pattern";
+local active_vlc_source;
+
 obs = obslua
 
 print("Starting Dater Obs Plugin..!")
@@ -22,6 +24,7 @@ function script_properties()
 			source_id = obs.obs_source_get_unversioned_id(source)
 			if source_id == "vlc_source" then
 				local name = obs.obs_source_get_name(source)
+        active_vlc_source = source
 				obs.obs_property_list_add_string(vlc_player, name, name)
 			end
 		end
@@ -46,9 +49,16 @@ function settings_modified(props, prop, settings)
 	local p_start_in_secs = obs.obs_properties_get(props, "start_in_secs")	
 	local vlc_source_name = obs.obs_data_get_string(settings, "vlc_source")
 
-  -- print("VLC Source changed: "..p_vlc_source.."\n");
+
+  if vlc_source_name == nil then
+    return
+  end
+
   print('Settings changed..');
-  print("New VLC source name: "..vlc_source_name);
+  print("New VLC source name: " .. vlc_source_name);
+  print("VLC Source Properties: ");
+    local vlc_source_properties = obs.obs_source_properties(active_vlc_source)
+  set_vlc_player_settings()
   return true
 end
 
@@ -76,12 +86,26 @@ function script_update(settings)
   local p_start_in_secs = obs.obs_data_get_int(settings, "start_in_secs")
 end
 
-function set_vlc_player_url(url)   
+function set_vlc_player_settings()
 	local vlc_source = obs.obs_get_source_by_name(source_name)
-	if source ~= nil then
-		local vlc_settings = obs.obs_data_create()
-		obs.obs_data_set_string(vlc_settings, "url", url)
-		obs.obs_source_update(vlc_source, vlc_settings)
+
+  if vlc_source ~= nil then
+    local vlc_settings = obs.obs_data_create()
+    obs.obs_data_set_bool(vlc_settings, "always_play", true)
+
+    -- "playlist"
+    local array = obs.obs_data_array_create()
+    local item = obs.obs_data_create()
+    obs.obs_data_set_string(item, "value", stream_url)
+    obs.obs_data_array_push_back(array, item)
+    obs.obs_data_set_array(vlc_settings, "playlist", array)
+
+    -- updating will automatically cause the source to
+    -- refresh if the source is currently active
+
+    obs.obs_data_release(item)
+    obs.obs_data_array_release(array)
+    obs.obs_source_update(vlc_source, vlc_settings)
 		obs.obs_data_release(vlc_settings)
 		obs.obs_source_release(vlc_source)
 	end
