@@ -4,9 +4,13 @@ local stream_url = "rtsp://rtsp.stream/pattern";
 local devEnvironment = 'Development';
 local prodEnvironment = 'Production';
 local activeDevEnironment = prodEnvironment;
-local devObsStreamInfoFunction = 'us-central1-dater3-dev.cloudfunctions.net/https-getObsStreamInfo';
-local prodObsStreamInfoFunction = 'us-central1-dater3-dev.cloudfunctions.net/https-getObsStreamInfo';
+local devObsStreamInfoHost = 'us-central1-dater3-dev.cloudfunctions.net';
+local devObsStreamInfoFunction = '/https-getObsStreamInfo';
+local prodObsStreamInfoHost = 'get-obs-stream-info.dater.com';
+local prodObsStreamInfoFunction = '/';
 local defaultObsStreamFunction = prodObsStreamInfoFunction;
+local p_user_id = ''
+local p_obs_token = ''
 
 obs = obslua
 
@@ -16,25 +20,26 @@ function script_description()
   return [[Get your current match stream and play it in VLC Source automatically]]
 end
 
-
 function script_properties()
-	local props = obs.obs_properties_create()
+  local props = obs.obs_properties_create()
 
-	local vlc_player = obs.obs_properties_add_list(props, "vlc_source", "VLC Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
-	local sources = obs.obs_enum_sources()
-  local daterEnvironment = obs.obs_properties_add_list(props, "dater_dev_env", "Environment", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+  local vlc_player = obs.obs_properties_add_list(props, "vlc_source", "VLC Source", obs.OBS_COMBO_TYPE_EDITABLE,
+    obs.OBS_COMBO_FORMAT_STRING)
+  local sources = obs.obs_enum_sources()
+  local daterEnvironment = obs.obs_properties_add_list(props, "dater_dev_env", "Environment", obs.OBS_COMBO_TYPE_EDITABLE
+    , obs.OBS_COMBO_FORMAT_STRING)
   obs.obs_property_list_add_string(daterEnvironment, devEnvironment, devEnvironment)
   obs.obs_property_list_add_string(daterEnvironment, prodEnvironment, prodEnvironment)
 
   if sources ~= nil then
-		for _, source in ipairs(sources) do
-			source_id = obs.obs_source_get_unversioned_id(source)
-			if source_id == "vlc_source" then
-				local name = obs.obs_source_get_name(source)
-				obs.obs_property_list_add_string(vlc_player, name, name)
-			end
-		end
-	end
+    for _, source in ipairs(sources) do
+      source_id = obs.obs_source_get_unversioned_id(source)
+      if source_id == "vlc_source" then
+        local name = obs.obs_source_get_name(source)
+        obs.obs_property_list_add_string(vlc_player, name, name)
+      end
+    end
+  end
 
   obs.source_list_release(sources)
 
@@ -42,6 +47,7 @@ function script_properties()
   obs.obs_properties_add_text(props, "obs_token", "Dater OBS Token", obs.OBS_TEXT_DEFAULT)
   obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
   -- local apply_button = obs.obs_properties_add_button(props, "apply", "Apply", set_vlc_player_settings)
+  local start_button = obs.obs_properties_add_button(props, "startDater", "Start", get_obs_stream_info)
 
   obs.obs_property_set_modified_callback(vlc_player, settings_modified)
   obs.obs_property_set_modified_callback(daterEnvironment, settings_modified)
@@ -49,7 +55,7 @@ function script_properties()
 
   settings_modified(props, nil, settings_)
 
-	return props
+  return props
 end
 
 local function isNotEmpty(textString)
@@ -62,31 +68,32 @@ function settings_modified(props, prop, settings)
   end
 
   -- local p_vlc_source = obs.obs_properties_get(props, "vlc_source")
-  local p_user_id = obs.obs_data_get_string(settings, "user_id")
-  local p_obs_token = obs.obs_data_get_string(settings, "obs_token")
+  p_user_id = obs.obs_data_get_string(settings, "user_id")
+  p_obs_token = obs.obs_data_get_string(settings, "obs_token")
   local p_autostart = obs.obs_data_get_bool(settings, "autostart")
   local vlc_source_name = obs.obs_data_get_string(settings, "vlc_source")
 
   activeDevEnironment = obs.obs_data_get_string(settings, "dater_dev_env")
 
-  -- set_vlc_player_settings()
   print('----------------------');
   print('Settings changed..');
   print('Dev Enviroment: ' .. activeDevEnironment);
-  print('Autostart: '..tostring(p_autostart));
+  print('Autostart: ' .. tostring(p_autostart));
 
   if vlc_source_name == nil then
     return
   end
 
+  set_vlc_player_settings()
+
   print("VLC source: " .. vlc_source_name);
 
   if isNotEmpty(p_user_id) then
-    print('Dater User Id: '..p_user_id);
+    print('Dater User Id: ' .. p_user_id);
   end
 
   if isNotEmpty(p_obs_token) then
-    print('Dater OBS Token: '..p_obs_token);
+    print('Dater OBS Token: ' .. p_obs_token);
   end
   settings_ = settings
 
@@ -94,22 +101,21 @@ function settings_modified(props, prop, settings)
 end
 
 function script_defaults(settings)
-	obs.obs_data_set_default_string(settings, "vlc_source", "-----")
-	obs.obs_data_set_default_int(settings, "start_in_secs", 0)
+  obs.obs_data_set_default_string(settings, "vlc_source", "-----")
+  obs.obs_data_set_default_int(settings, "start_in_secs", 0)
   obs.obs_data_set_default_string(settings, "dater_dev_env", activeDevEnironment)
 end
 
-
 function script_load(settings)
-	local sh = obs.obs_get_signal_handler()
-	obs.signal_handler_connect(sh, "source_show", source_activated)
-	obs.signal_handler_connect(sh, "source_hide", source_deactivated)
+  local sh = obs.obs_get_signal_handler()
+  obs.signal_handler_connect(sh, "source_show", source_activated)
+  obs.signal_handler_connect(sh, "source_hide", source_deactivated)
 
-	obs.obs_frontend_add_event_callback(on_event)
+  obs.obs_frontend_add_event_callback(on_event)
 
-	settings_ = settings
+  settings_ = settings
 
-	script_update(settings)
+  script_update(settings)
 end
 
 function script_update(settings)
@@ -118,7 +124,7 @@ function script_update(settings)
 end
 
 function set_vlc_player_settings()
-	local vlc_source = obs.obs_get_source_by_name(source_name)
+  local vlc_source = obs.obs_get_source_by_name(source_name)
 
   if vlc_source ~= nil then
     local vlc_settings = obs.obs_data_create()
@@ -137,25 +143,36 @@ function set_vlc_player_settings()
     obs.obs_data_release(item)
     obs.obs_data_array_release(array)
     obs.obs_source_update(vlc_source, vlc_settings)
-		obs.obs_data_release(vlc_settings)
-		obs.obs_source_release(vlc_source)
-	end
+    obs.obs_data_release(vlc_settings)
+    obs.obs_source_release(vlc_source)
+  end
 end
 
 function get_obs_stream_info()
-  local host = "us-central1-dater3-dev.cloudfunctions.net"
-  local functionName = "api-locationByIp";
+  local obsFunction;
+  local host;
 
+  if activeDevEnironment == prodEnvironment then
+    obsFunction = prodObsStreamInfoFunction
+    host = prodObsStreamInfoHost
+  elseif activeDevEnironment == devEnvironment then
+    obsFunction = devObsStreamInfoFunction
+    host = devObsStreamInfoHost
+  else
+    obsFunction = defaultObsStreamFunction
+    host = prodObsStreamInfoHost
+  end
+  local getUrlWithParams = obsFunction .. '?userId=' .. p_user_id.. '&obsAccessToken='..p_obs_token;
   local socket = assert(socket.create("inet", "stream", "tcp"))
   assert(socket:set_blocking(false))
   assert(socket:connect(host, "http"))
 
-  print("Request page: http://" .. host .. "/" .. functionName .. "\n\n");
+  print("Request OBS function: http://" .. host .. getUrlWithParams .."\n\n");
 
   while true do
     if socket:is_connected() then
       assert(socket:send(
-        "GET /" .. functionName .. " HTTP/1.1\r\n" ..
+        "GET /" .. getUrlWithParams .. " HTTP/1.1\r\n" ..
         "Host: " .. host .. "\r\n" ..
         "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0\r\n" ..
         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n" ..
