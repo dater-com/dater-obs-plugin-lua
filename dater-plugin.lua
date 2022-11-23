@@ -123,7 +123,7 @@ function script_update(settings)
   video_id = obs.obs_data_get_string(settings, "user_id")
 end
 
-function set_vlc_player_settings()
+function set_vlc_player_settings(partnerStreamUrl)
   local vlc_source = obs.obs_get_source_by_name(source_name)
 
   if vlc_source ~= nil then
@@ -133,7 +133,7 @@ function set_vlc_player_settings()
     -- "playlist"
     local array = obs.obs_data_array_create()
     local item = obs.obs_data_create()
-    obs.obs_data_set_string(item, "value", stream_url)
+    obs.obs_data_set_string(item, "value", partnerStreamUrl)
     obs.obs_data_array_push_back(array, item)
     obs.obs_data_set_array(vlc_settings, "playlist", array)
 
@@ -151,6 +151,7 @@ end
 function get_obs_stream_info()
   local obsFunction;
   local host;
+  local parseResult = ''
 
   if activeDevEnironment == prodEnvironment then
     obsFunction = prodObsStreamInfoFunction
@@ -162,8 +163,10 @@ function get_obs_stream_info()
     obsFunction = defaultObsStreamFunction
     host = prodObsStreamInfoHost
   end
+
   local getUrlWithParams = obsFunction .. '?userId=' .. p_user_id.. '&obsAccessToken='..p_obs_token;
   local socket = assert(socket.create("inet", "stream", "tcp"))
+
   assert(socket:set_blocking(false))
   assert(socket:connect(host, "http"))
 
@@ -184,22 +187,20 @@ function get_obs_stream_info()
         "\r\n"
       ))
 
-      local str = ""
       local total_length
 
       while true do
         local chunk, err = socket:receive()
 
         if chunk then
-          str = str .. chunk
+          parseResult = parseResult .. chunk
 
           if not total_length then
-            total_length = tonumber(str:match("Content%-Length: (%d+)"))
+            total_length = tonumber(parseResult:match("Content%-Length: (%d+)"))
           end
 
-          if #str >= total_length then
-            print(str)
-            print("\nDone!\n");
+                    if #parseResult >= total_length then
+            parseHttpGetResult(parseResult)
             return
           end
         elseif err ~= "timeout" then
@@ -211,4 +212,27 @@ function get_obs_stream_info()
       socket:poll_connect()
     end
   end
+end
+
+function parseHttpGetResult(parseResult)
+  print(parseResult)
+  local myCoinsBalance = tonumber(parseResult:match("\"myInfo\":{\"coinsBalance\":(%d+),\"")) or 0
+  local myNumberOfCalls = tonumber(parseResult:match("numberOfCalls\":(%d+),\"")) or 0
+  local partnerStream = parseResult:match("myself\":\"(%S+)\"},") or nil
+  local myStream = parseResult:match("myself\":\"(%S+)\",\"partner") or nil
+
+  print("myCoinsBalance: " .. myCoinsBalance)
+  print("myNumberOfCalls: " .. myNumberOfCalls)
+
+  if partnerStream ~= nil then
+    print("partnerStream: " .. partnerStream)
+    set_vlc_player_settings(partnerStream)
+  end
+
+  if myStream ~= nil then
+    print("myStream: " .. myStream)
+    set_vlc_player_settings(myStream)
+  end
+
+  print("\nDone!\n");
 end
