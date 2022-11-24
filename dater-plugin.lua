@@ -148,6 +148,28 @@ function set_vlc_player_settings(partnerStreamUrl)
   end
 end
 
+function set_text_source_settings(coinsNumber)
+  print("Updating Coins with: " .. coinsNumber)
+
+  local text_source = obs.obs_get_source_by_name('Coins')
+
+  if text_source ~= nil then
+    local text_settings = obs.obs_data_create()
+    obs.obs_data_set_string(text_settings, "text", 'Coins: '..coinsNumber)
+
+    -- local item = obs.obs_data_create()
+    -- obs.obs_data_set_string(item, "value", coinsNumber)
+
+    -- updating will automatically cause the source to
+    -- refresh if the source is currently active
+
+    -- obs.obs_data_release(item)
+    obs.obs_source_update(text_source, text_settings)
+    obs.obs_data_release(text_settings)
+    obs.obs_source_release(text_source)
+  end
+end
+
 function get_obs_stream_info()
   local obsFunction;
   local host;
@@ -223,6 +245,10 @@ function parseHttpGetResult(parseResult)
 
   print("myCoinsBalance: " .. myCoinsBalance)
   print("myNumberOfCalls: " .. myNumberOfCalls)
+
+  if myCoinsBalance ~= nil then
+    set_text_source_settings(myCoinsBalance)
+  end
 
   if partnerStream ~= nil then
     print("partnerStream: " .. partnerStream)
