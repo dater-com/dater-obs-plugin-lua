@@ -1,5 +1,7 @@
 ---@diagnostic disable: lowercase-global
-local socket = require("ljsocket")
+local socket = require("lib/ljsocket")
+local json = require "lib/json"
+
 local stream_url = "rtsp://rtsp.stream/pattern";
 local devEnvironment = 'Development';
 local prodEnvironment = 'Production';
@@ -236,15 +238,20 @@ function get_obs_stream_info()
   end
 end
 
-function parseHttpGetResult(parseResult)
-  print(parseResult)
-  local myCoinsBalance = tonumber(parseResult:match("\"myInfo\":{\"coinsBalance\":(%d+),\"")) or 0
-  local myNumberOfCalls = tonumber(parseResult:match("numberOfCalls\":(%d+),\"")) or 0
-  local partnerStream = parseResult:match("myself\":\"(%S+)\"},") or nil
-  local myStream = parseResult:match("myself\":\"(%S+)\",\"partner") or nil
+function parseHttpGetResult(parseResultRaw)
+  print(parseResultRaw)
+  local myCoinsBalance = tonumber(parseResultRaw:match("\"myInfo\":{\"coinsBalance\":(%d+),\"")) or 0
+  local myNumberOfCalls = tonumber(parseResultRaw:match("numberOfCalls\":(%d+),\"")) or 0
+  local partnerStream = parseResultRaw:match("myself\":\"(%S+)\"},") or nil
+  local myStream = parseResultRaw:match("myself\":\"(%S+)\",\"partner") or nil
 
-  print("myCoinsBalance: " .. myCoinsBalance)
-  print("myNumberOfCalls: " .. myNumberOfCalls)
+  local parseResultJsonString = parseResultRaw:match("{\"data\":(%S+)},\"status")..'}' or ''
+
+  local jsonResponse = json.decode(parseResultJsonString);
+
+  print("myCoinsBalance: " .. jsonResponse.myInfo.coinsBalance)
+  print("myNumberOfCalls: " .. jsonResponse.myInfo.numberOfCalls)
+  print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
   if myCoinsBalance ~= nil then
     set_text_source_settings(myCoinsBalance)
