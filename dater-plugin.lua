@@ -150,14 +150,14 @@ function set_vlc_player_settings(partnerStreamUrl)
   end
 end
 
-function set_text_source_settings(coinsNumber)
-  print("Updating Coins with: " .. coinsNumber)
+function set_text_source_settings(text_source_name, text)
+  print("Updating text source with: " .. text)
 
-  local text_source = obs.obs_get_source_by_name('Coins')
+  local text_source = obs.obs_get_source_by_name(text_source_name)
 
   if text_source ~= nil then
     local text_settings = obs.obs_data_create()
-    obs.obs_data_set_string(text_settings, "text", 'Coins: '..coinsNumber)
+    obs.obs_data_set_string(text_settings, "text", text)
 
     -- local item = obs.obs_data_create()
     -- obs.obs_data_set_string(item, "value", coinsNumber)
@@ -240,32 +240,36 @@ end
 
 function parseHttpGetResult(parseResultRaw)
   print(parseResultRaw)
-  local myCoinsBalance = tonumber(parseResultRaw:match("\"myInfo\":{\"coinsBalance\":(%d+),\"")) or 0
-  local myNumberOfCalls = tonumber(parseResultRaw:match("numberOfCalls\":(%d+),\"")) or 0
-  local partnerStream = parseResultRaw:match("myself\":\"(%S+)\"},") or nil
-  local myStream = parseResultRaw:match("myself\":\"(%S+)\",\"partner") or nil
-
-  local parseResultJsonString = parseResultRaw:match("{\"data\":(%S+)},\"status")..'}' or ''
+  local parseResultJsonString = parseResultRaw:match("{\"data\":(.+),\"status\":200}") or 'empty'
 
   local jsonResponse = json.decode(parseResultJsonString);
+
+  -- local myCoinsBalance = tonumber(parseResultRaw:match("\"myInfo\":{\"coinsBalance\":(%d+),\"")) or 0
+  -- local myNumberOfCalls = tonumber(parseResultRaw:match("numberOfCalls\":(%d+),\"")) or 0
+  -- local partnerStream = parseResultRaw:match("myself\":\"(%S+)\"},") or nil
+  -- local myStream = parseResultRaw:match("myself\":\"(%S+)\",\"partner") or nil
 
   print("myCoinsBalance: " .. jsonResponse.myInfo.coinsBalance)
   print("myNumberOfCalls: " .. jsonResponse.myInfo.numberOfCalls)
   print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
-  if myCoinsBalance ~= nil then
-    set_text_source_settings(myCoinsBalance)
+  if jsonResponse.myInfo.coinsBalance ~= nil then
+    set_text_source_settings('Coins', 'Coins: '..jsonResponse.myInfo.coinsBalance)
   end
 
-  if partnerStream ~= nil then
-    print("partnerStream: " .. partnerStream)
-    set_vlc_player_settings(partnerStream)
+  if jsonResponse.currentReward ~= nil then
+    set_text_source_settings('Reward', 'Reward: '..jsonResponse.currentReward)
   end
 
-  if myStream ~= nil then
-    print("myStream: " .. myStream)
-    set_vlc_player_settings(myStream)
+  if jsonResponse.currentStreamUrls.partner ~= nil then
+    print("partnerStream: " .. jsonResponse.currentStreamUrls.partner)
+    set_vlc_player_settings(jsonResponse.currentStreamUrls.partner)
   end
+
+  -- if myStream ~= nil then
+  --   print("myStream: " .. myStream)
+  --   set_vlc_player_settings(myStream)
+  -- end
 
   print("\nDone!\n");
 end
