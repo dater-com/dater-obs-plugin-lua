@@ -254,11 +254,27 @@ function parseHttpGetResult(parseResultRaw)
   print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
   if jsonResponse.myInfo.coinsBalance ~= nil then
-    set_text_source_settings('Coins', 'Coins: '..jsonResponse.myInfo.coinsBalance)
+    set_text_source_settings('coins', 'Coins: '..jsonResponse.myInfo.coinsBalance)
+  end
+
+  if jsonResponse.myInfo.avatarInfo.avatarState.energyCurrent ~= nil then
+    set_text_source_settings('energy', 'Energy: ' .. jsonResponse.myInfo.avatarInfo.avatarState.energyCurrent)
+  end
+
+  if jsonResponse.myInfo.avatarInfo.avatarState.energyAvailable ~= nil then
+    set_text_source_settings('total_energy', 'Max Energy: ' .. jsonResponse.myInfo.avatarInfo.avatarState.energyAvailable)
   end
 
   if jsonResponse.currentReward ~= nil then
-    set_text_source_settings('Reward', 'Reward: '..jsonResponse.currentReward)
+    set_text_source_settings('reward', 'Reward: ' .. jsonResponse.currentReward)
+  end
+
+  if jsonResponse.myInfo.numberOfCalls ~= nil then
+    set_text_source_settings('video_calls', 'Video Calls: ' .. jsonResponse.myInfo.numberOfCalls)
+  end
+
+  if jsonResponse.myInfo.totalCoinsEverReceived ~= nil then
+    set_text_source_settings('total_coins', 'Total Coins: ' .. jsonResponse.myInfo.totalCoinsEverReceived)
   end
 
   if jsonResponse.currentStreamUrls.partner ~= nil then
@@ -273,3 +289,4 @@ function parseHttpGetResult(parseResultRaw)
 
   print("\nDone!\n");
 end
+
