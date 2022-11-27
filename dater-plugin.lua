@@ -277,6 +277,10 @@ function parseHttpGetResult(parseResultRaw)
     set_text_source_settings('total_coins', 'Total Coins: ' .. jsonResponse.myInfo.totalCoinsEverReceived)
   end
 
+  if jsonResponse.partner ~= nil then
+    set_text_source_settings('partner_info', jsonResponse.partner.name .. ' ,' .. jsonResponse.partner.age)
+  end
+
   if jsonResponse.currentStreamUrls.partner ~= nil then
     print("partnerStream: " .. jsonResponse.currentStreamUrls.partner)
     set_vlc_player_settings(jsonResponse.currentStreamUrls.partner)
