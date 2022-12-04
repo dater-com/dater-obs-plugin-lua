@@ -13,6 +13,18 @@ local prodObsStreamInfoFunction = '/';
 local defaultObsStreamFunction = prodObsStreamInfoFunction;
 local p_user_id = ''
 local p_obs_token = ''
+local hotkeys = {
+  htk_refresh = "Refresh Game",
+  htk_hide_partner_video = "Hade Partner Video",
+}
+local hk = {}
+local key_1 = '{"htk_1": [ { "key": "OBS_KEY_1" } ],'
+local key_2 = '"htk_2": [ { "key": "OBS_KEY_2" } ]}'
+local json_s = key_1 .. key_2
+local default_hotkeys = {
+  { id = 'htk_1', des = 'Button 1 ', callback = htk_1_cb },
+  { id = 'htk_2', des = 'Button 2 ', callback = htk_2_cb },
+}
 
 obs = obslua
 
@@ -117,6 +129,7 @@ function script_load(settings)
 
   settings_ = settings
 
+  regiser_hot_keys(settings)
   script_update(settings)
 end
 
@@ -294,3 +307,52 @@ function parseHttpGetResult(parseResultRaw)
   print("\nDone!\n");
 end
 
+function hotkey_mapping(hotkey)
+  if hotkey == "htk_stop" then
+    print('Стоп')
+  elseif hotkey == "htk_start" then
+    print('Старт')
+  end
+end
+
+function htk_1_cb(pressed)
+  if pressed then
+    print('Refresh game pressed')
+  end
+end
+
+function htk_2_cb(pressed)
+  if pressed then
+    print('Hide video partner pressed')
+  end
+end
+
+function regiser_hot_keys(settings)
+    for k, v in pairs(hotkeys) do
+    hk[k] = obs.obs_hotkey_register_frontend(k, v, function(pressed)
+      if pressed then 
+        hotkey_mapping(k)
+      end
+    end)
+    a = obs.obs_data_get_array(settings, k)
+    obs.obs_hotkey_load(hk[k], a)
+    obs.obs_data_array_release(a)
+  end
+
+  s = obs.obs_data_create_from_json(json_s)
+  for _,v in pairs(default_hotkeys) do
+    a = obs.obs_data_get_array(s,v.id)
+    h = obs.obs_hotkey_register_frontend(v.id,v.des,v.callback)
+    obs.obs_hotkey_load(h,a)
+    obs.obs_data_array_release(a)
+  end
+  obs.obs_data_release(s)
+end
+
+function script_save(settings)
+  for k, v in pairs(hotkeys) do
+    a = obs.obs_hotkey_save(hk[k])
+    obs.obs_data_set_array(settings, k, a)
+    obs.obs_data_array_release(a)
+  end
+end
