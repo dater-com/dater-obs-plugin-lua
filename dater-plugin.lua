@@ -279,7 +279,7 @@ function parseHttpGetResult(parseResultRaw)
   end
 
   if jsonResponse.currentReward ~= nil then
-    set_text_source_settings('reward', 'Reward: ' .. jsonResponse.currentReward)
+    set_text_source_settings('reward', jsonResponse.currentReward)
   end
 
   if jsonResponse.myInfo.numberOfCalls ~= nil then
@@ -291,7 +291,7 @@ function parseHttpGetResult(parseResultRaw)
   end
 
   if jsonResponse.partner ~= nil then
-    set_text_source_settings('partner_info', jsonResponse.partner.name .. ' ,' .. jsonResponse.partner.age)
+    set_text_source_settings('partner_info', jsonResponse.partner.name .. ', ' .. jsonResponse.partner.age)
   end
 
   if jsonResponse.currentStreamUrls.partner ~= nil then
