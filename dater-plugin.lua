@@ -14,8 +14,8 @@ local defaultObsStreamFunction = prodObsStreamInfoFunction;
 local p_user_id = ''
 local p_obs_token = ''
 local hotkeys = {
-  htk_refresh = "Refresh Game",
-  htk_hide_partner_video = "Hade Partner Video",
+  htk_refresh = "Dater: Refresh Game",
+  htk_hide_partner_video = "Dater: Hide Partner Video",
 }
 local hk = {}
 local key_1 = '{"htk_1": [ { "key": "OBS_KEY_1" } ],'
@@ -316,6 +316,8 @@ function hotkey_mapping(hotkey)
 end
 
 function htk_1_cb(pressed)
+  print('Refresh game pressed')
+
   if pressed then
     print('Refresh game pressed')
   end
