@@ -59,7 +59,7 @@ function script_properties()
 
   obs.obs_properties_add_text(props, "user_id", "Dater userId", obs.OBS_TEXT_DEFAULT)
   obs.obs_properties_add_text(props, "obs_token", "Dater OBS Token", obs.OBS_TEXT_DEFAULT)
-  obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
+  obs.obs_properties_add_bool(props, "autorefresh", "Autorefresh")
   -- local apply_button = obs.obs_properties_add_button(props, "apply", "Apply", set_vlc_player_settings)
   local start_button = obs.obs_properties_add_button(props, "startDater", "Start", get_obs_stream_info)
 
@@ -220,7 +220,7 @@ function get_obs_stream_info()
         --"Accept-Encoding: gzip, deflate\r\n"..
         "DNT: 1\r\n" ..
         "Connection: keep-alive\r\n" ..
-        "Upgrade-Insecure-Requests: 1\r\n" ..
+        "Upgrade-Insecure-4Requests: 1\r\n" ..
         "\r\n"
       ))
 
