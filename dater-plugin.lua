@@ -59,7 +59,7 @@ function script_properties()
 
   obs.obs_properties_add_text(props, "user_id", "Dater userId", obs.OBS_TEXT_DEFAULT)
   obs.obs_properties_add_text(props, "obs_token", "Dater OBS Token", obs.OBS_TEXT_DEFAULT)
-  obs.obs_properties_add_bool(props, "autostart", "Autostart playing")
+  obs.obs_properties_add_bool(props, "autorefresh", "Autorefresh")
   -- local apply_button = obs.obs_properties_add_button(props, "apply", "Apply", set_vlc_player_settings)
   local start_button = obs.obs_properties_add_button(props, "startDater", "Start", get_obs_stream_info)
 
@@ -220,7 +220,7 @@ function get_obs_stream_info()
         --"Accept-Encoding: gzip, deflate\r\n"..
         "DNT: 1\r\n" ..
         "Connection: keep-alive\r\n" ..
-        "Upgrade-Insecure-Requests: 1\r\n" ..
+        "Upgrade-Insecure-4Requests: 1\r\n" ..
         "\r\n"
       ))
 
@@ -267,7 +267,7 @@ function parseHttpGetResult(parseResultRaw)
   print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
   if jsonResponse.myInfo.coinsBalance ~= nil then
-    set_text_source_settings('coins', 'Coins: '..jsonResponse.myInfo.coinsBalance)
+    set_text_source_settings('coins_balance', 'Coins: ' .. jsonResponse.myInfo.coinsBalance)
   end
 
   if jsonResponse.myInfo.avatarInfo.avatarState.energyCurrent ~= nil then
@@ -279,11 +279,11 @@ function parseHttpGetResult(parseResultRaw)
   end
 
   if jsonResponse.currentReward ~= nil then
-    set_text_source_settings('reward', jsonResponse.currentReward)
+    set_text_source_settings('current_reward', jsonResponse.currentReward)
   end
 
   if jsonResponse.myInfo.numberOfCalls ~= nil then
-    set_text_source_settings('video_calls', 'Video Calls: ' .. jsonResponse.myInfo.numberOfCalls)
+    set_text_source_settings('video_calls', 'Calls: ' .. jsonResponse.myInfo.numberOfCalls)
   end
 
   if jsonResponse.myInfo.totalCoinsEverReceived ~= nil then
