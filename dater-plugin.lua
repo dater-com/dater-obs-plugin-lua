@@ -267,7 +267,7 @@ function parseHttpGetResult(parseResultRaw)
   print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
   if jsonResponse.myInfo.coinsBalance ~= nil then
-    set_text_source_settings('coins', 'Coins: '..jsonResponse.myInfo.coinsBalance)
+    set_text_source_settings('coins_balance', 'Coins: ' .. jsonResponse.myInfo.coinsBalance)
   end
 
   if jsonResponse.myInfo.avatarInfo.avatarState.energyCurrent ~= nil then
@@ -279,11 +279,11 @@ function parseHttpGetResult(parseResultRaw)
   end
 
   if jsonResponse.currentReward ~= nil then
-    set_text_source_settings('reward', jsonResponse.currentReward)
+    set_text_source_settings('current_reward', jsonResponse.currentReward)
   end
 
   if jsonResponse.myInfo.numberOfCalls ~= nil then
-    set_text_source_settings('video_calls', 'Video Calls: ' .. jsonResponse.myInfo.numberOfCalls)
+    set_text_source_settings('video_calls', 'Calls: ' .. jsonResponse.myInfo.numberOfCalls)
   end
 
   if jsonResponse.myInfo.totalCoinsEverReceived ~= nil then
