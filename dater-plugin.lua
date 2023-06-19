@@ -262,12 +262,15 @@ function parseHttpGetResult(parseResultRaw)
   -- local partnerStream = parseResultRaw:match("myself\":\"(%S+)\"},") or nil
   -- local myStream = parseResultRaw:match("myself\":\"(%S+)\",\"partner") or nil
 
-  print("myCoinsBalance: " .. jsonResponse.myInfo.coinsBalance)
+  -- round jsonResponse.myInfo.coinsBalance to 2 decimal places
+  local roundedCoinsBalance = tonumber(string.format("%.2f", jsonResponse.myInfo.coinsBalance))
+
+  print("myCoinsBalance: " .. roundedCoinsBalance)
   print("myNumberOfCalls: " .. jsonResponse.myInfo.numberOfCalls)
   print("subscribers: " .. jsonResponse.myInfo.subscribers)
 
   if jsonResponse.myInfo.coinsBalance ~= nil then
-    set_text_source_settings('coins_balance', 'Coins: ' .. jsonResponse.myInfo.coinsBalance)
+    set_text_source_settings('coins_balance', 'Coins: ' .. roundedCoinsBalance)
   end
 
   if jsonResponse.myInfo.avatarInfo.avatarState.energyCurrent ~= nil then
@@ -278,8 +281,11 @@ function parseHttpGetResult(parseResultRaw)
     set_text_source_settings('total_energy', 'Max Energy: ' .. jsonResponse.myInfo.avatarInfo.avatarState.energyAvailable)
   end
 
+  -- round jsonResponse.currentReward to 2 decimal places and put varaiable to roundedCurrentReward varaiable
+  local roundedCurrentReward = tonumber(string.format("%.2f", jsonResponse.currentReward))
+
   if jsonResponse.currentReward ~= nil then
-    set_text_source_settings('current_reward', jsonResponse.currentReward)
+    set_text_source_settings('current_reward', roundedCurrentReward)
   end
 
   if jsonResponse.myInfo.numberOfCalls ~= nil then
